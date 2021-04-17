@@ -14,7 +14,7 @@ RUN docker-php-ext-enable swoole \
     pdo_mysql
 
 COPY / /app
-COPY .env-prod .env
+COPY prod.env .env
 COPY --from=composer:latest /usr/bin/composer /usr/local/bin/composer
 RUN composer install --no-dev
 
