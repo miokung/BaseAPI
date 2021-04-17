@@ -1,0 +1,30 @@
+FROM phpswoole/swoole:4.6.3-php7.4-alpine
+# COPY ./php.ini.local /usr/local/etc/php/conf.d/
+ARG PHP_SOCKET=php-fpm:1215
+WORKDIR /app
+
+RUN apk upgrade --update
+RUN apk add bash git zip unzip
+
+ENV TZ=Asia/Bangkok
+RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
+
+RUN docker-php-ext-install pdo_mysql 
+RUN docker-php-ext-enable swoole \
+    pdo_mysql
+
+COPY / /app
+COPY .env-prod .env
+COPY --from=composer:latest /usr/bin/composer /usr/local/bin/composer
+RUN composer install --no-dev
+
+# RUN chown -R www-data:www-data .
+EXPOSE 1215
+EXPOSE 3000
+EXPOSE 8000
+ENV SWOOLE_HTTP_HOST=0.0.0.0
+ENV SWOOLE_HANDLE_STATIC=false
+ENV JWT_SECRET=DwtKpggJIZW9JsVWxvwUmz9LqskMY35JQGHJBvXxfyDkPqkdJJnHgUOzU4MhVyXH
+
+RUN php artisan optimize:clear
+CMD php artisan swoole:http start
